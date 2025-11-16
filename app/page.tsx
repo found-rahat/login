@@ -54,6 +54,16 @@ export default function Home() {
               Sign In
             </Link>
           </div>
+
+          {/* Temporary link to dashboard for demo purposes */}
+          <div className="mt-8">
+            <Link
+              href="/dashboard"
+              className="text-indigo-600 dark:text-indigo-400 hover:underline"
+            >
+              View Dashboard (Demo)
+            </Link>
+          </div>
         </div>
       </main>
 

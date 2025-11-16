@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Register | Next.js App",
@@ -186,12 +187,12 @@ export default function RegisterPage() {
         <div className="text-center text-sm text-gray-600">
           <p>
             Already have an account?{" "}
-            <a
+            <Link
               href="/login"
               className="font-medium text-indigo-600 hover:text-indigo-500"
             >
               Sign in
-            </a>
+            </Link>
           </p>
         </div>
       </div>
