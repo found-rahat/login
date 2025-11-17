@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ReactNode } from "react";
+import { useRouter } from "next/navigation";
+import Cookies from "js-cookie";
 
 type NavItemProps = {
   href: string;
@@ -28,6 +30,12 @@ function NavItem({ href, children }: NavItemProps) {
 }
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
+  const router = useRouter();
+  const handleLogout = () => {
+    // Remove the token cookie and redirect to login
+    Cookies.remove("auth_token");
+    router.push("/login");
+  };
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
       {/* Sidebar */}
@@ -71,12 +79,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               </p>
             </div>
           </div>
-          <Link
-            href="/login"
-            className="mt-4 block text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+          <button
+            onClick={handleLogout}
+            className="mt-4 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
           >
             Sign out
-          </Link>
+          </button>
         </div>
       </div>
 
