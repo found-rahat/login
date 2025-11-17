@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import Cookies from 'js-cookie';
 
 // This page uses client-side features, so metadata needs to be defined in layout.tsx or through generateMetadata
 // For client-side components, we can't export static metadata, so removing it from here
@@ -56,6 +57,8 @@ export default function RegisterPage() {
       if (response.ok) {
         // Registration successful
         alert("Registration successful! Redirecting to login...");
+        // Remove any existing auth token to ensure user logs in
+        Cookies.remove('auth_token');
         router.push("/login");
       } else {
         // Handle error response from API
