@@ -1,0 +1,7 @@
+DATABASE_URL="mysql://root@localhost:3306/loginsystem"
+JWT_SECRET="z1r8J$3k!9sY@F#pT2vLq7H%nB4wX&dR6uG*eQ!sM9yH#rK"
+
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=nurbdbazar120@gmail.com
+SMTP_PASS=kngm waiw wzhp bfhm
