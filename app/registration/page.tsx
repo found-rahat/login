@@ -3,11 +3,19 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import Cookies from 'js-cookie';
+import Cookies from "js-cookie";
 
-// This page uses client-side features, so metadata needs to be defined in layout.tsx or through generateMetadata
-// For client-side components, we can't export static metadata, so removing it from here
+type User = {
+  id: number;
+  name: string;
+  email: string;
+  emailVerified: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export default function RegisterPage() {
+  // Registration form state
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -15,9 +23,21 @@ export default function RegisterPage() {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Verification state
+  const [showVerification, setShowVerification] = useState(false);
+  const [verificationCode, setVerificationCode] = useState("");
+  const [verificationError, setVerificationError] = useState<string | null>(
+    null
+  );
+  const [verificationLoading, setVerificationLoading] = useState(false);
+
+  // Success state
+  const [success, setSuccess] = useState(false);
+
   const router = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleRegistration = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Validation
@@ -55,11 +75,8 @@ export default function RegisterPage() {
       const data = await response.json();
 
       if (response.ok) {
-        // Registration successful
-        alert("Registration successful! Redirecting to login...");
-        // Remove any existing auth token to ensure user logs in
-        Cookies.remove('auth_token');
-        router.push("/login");
+        // Registration successful - show verification form
+        setShowVerification(true);
       } else {
         // Handle error response from API
         setError(data.error || "Registration failed");
@@ -72,6 +89,172 @@ export default function RegisterPage() {
     }
   };
 
+  const handleVerification = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!verificationCode) {
+      setVerificationError("Please enter the verification code");
+      return;
+    }
+
+    setVerificationLoading(true);
+    setVerificationError(null);
+
+    try {
+      const response = await fetch("/api/auth/verify", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          code: verificationCode,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Verification successful
+        setSuccess(true);
+        // Optionally show success message and redirect after a delay
+        setTimeout(() => {
+          router.push("/login");
+        }, 3000);
+      } else {
+        // Handle error response from API
+        setVerificationError(data.error || "Verification failed");
+      }
+    } catch (err) {
+      console.error("Verification error:", err);
+      setVerificationError("An unexpected error occurred during verification");
+    } finally {
+      setVerificationLoading(false);
+    }
+  };
+
+  // If success, show success message
+  if (success) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-liner-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full space-y-8 bg-white p-10 rounded-2xl shadow-xl text-center">
+          <div className="mx-auto h-16 w-16 rounded-full bg-green-100 flex items-center justify-center">
+            <svg
+              className="h-10 w-10 text-green-600"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M5 13l4 4L19 7"
+              />
+            </svg>
+          </div>
+          <h2 className="mt-6 text-2xl font-bold text-gray-900">
+            Email Verified!
+          </h2>
+          <p className="text-gray-600">
+            Your email has been verified successfully. You will be redirected to
+            login in a few seconds.
+          </p>
+          <p className="text-sm text-gray-500">
+            If you are not redirected automatically,{" "}
+            <Link
+              href="/login"
+              className="text-indigo-600 hover:text-indigo-500"
+            >
+              click here
+            </Link>{" "}
+            to go to the login page.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // If verification is shown, show the verification form
+  if (showVerification) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-liner-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full space-y-8 bg-white p-10 rounded-2xl shadow-xl">
+          <div className="text-center">
+            <div className="mx-auto h-16 w-16 rounded-full bg-indigo-100 flex items-center justify-center">
+              <span className="text-2xl font-bold text-indigo-600">L</span>
+            </div>
+            <h2 className="mt-6 text-2xl font-bold text-gray-900">
+              Verify Your Email
+            </h2>
+            <p className="mt-2 text-sm text-gray-600">
+              We've sent a 6-digit code to{" "}
+              <span className="font-semibold">{email}</span>
+            </p>
+          </div>
+
+          {verificationError && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+              {verificationError}
+            </div>
+          )}
+
+          <form className="mt-8 space-y-6" onSubmit={handleVerification}>
+            <div>
+              <label
+                htmlFor="verificationCode"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                6-Digit Verification Code
+              </label>
+              <input
+                id="verificationCode"
+                name="verificationCode"
+                type="text"
+                value={verificationCode}
+                onChange={(e) => setVerificationCode(e.target.value)}
+                required
+                maxLength={6}
+                className="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-center text-2xl tracking-widest"
+                placeholder="1 2 3 4 5 6"
+              />
+              <p className="mt-2 text-sm text-gray-500">
+                Please check your email for the verification code. The code will
+                expire in 24 hours.
+              </p>
+            </div>
+
+            <div>
+              <button
+                type="submit"
+                disabled={verificationLoading}
+                className={`group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-300 ${
+                  verificationLoading ? "opacity-75 cursor-not-allowed" : ""
+                }`}
+              >
+                {verificationLoading ? "Verifying..." : "Verify Email"}
+              </button>
+            </div>
+          </form>
+
+          <div className="text-center text-sm text-gray-600">
+            <p>
+              Didn't receive the code?{" "}
+              <button
+                type="button"
+                onClick={() => setShowVerification(false)}
+                className="font-medium text-indigo-600 hover:text-indigo-500"
+              >
+                Go back to registration
+              </button>
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Default registration form
   return (
     <div className="min-h-screen flex items-center justify-center bg-liner-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8 bg-white p-10 rounded-2xl shadow-xl">
@@ -91,7 +274,7 @@ export default function RegisterPage() {
           </div>
         )}
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        <form className="mt-8 space-y-6" onSubmit={handleRegistration}>
           <div className="space-y-4">
             <div>
               <label

@@ -11,7 +11,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     // Check if user is authenticated by verifying the token
-    const token = localStorage.getItem("auth_token");
+    const token = Cookies.get("auth_token"); // Get token from cookies instead of localStorage
 
     if (!token) {
       // No token, redirect to login
@@ -38,6 +38,7 @@ export default function DashboardPage() {
     // Remove the token cookie and redirect to login
     Cookies.remove("auth_token");
     router.push("/login");
+    router.refresh(); // Refresh to ensure middleware picks up the change
   };
 
   if (loading) {

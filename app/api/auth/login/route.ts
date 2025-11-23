@@ -38,6 +38,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check if email is verified (optional: depends on your security requirements)
+    if (!user.emailVerified) {
+      return new Response(
+        JSON.stringify({
+          error: 'Please verify your email address before logging in',
+          requiresVerification: true
+        }),
+        { status: 401, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Create JWT token
     const secret = new TextEncoder().encode(
       process.env.JWT_SECRET || 'fallback_secret_for_development'
@@ -53,10 +64,10 @@ export async function POST(request: NextRequest) {
     const { password: _, ...userWithoutPassword } = user;
 
     return new Response(
-      JSON.stringify({ 
-        message: 'Login successful', 
+      JSON.stringify({
+        message: 'Login successful',
         user: userWithoutPassword,
-        token 
+        token
       }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );

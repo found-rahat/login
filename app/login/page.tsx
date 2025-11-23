@@ -47,7 +47,12 @@ export default function LoginPage() {
         router.refresh(); // Refresh to ensure middleware picks up the change
       } else {
         // Handle error response from API
-        setError(data.error || "Login failed");
+        if (data.requiresVerification) {
+          // Redirect to verification page with email
+          router.push(`/verify-email?email=${encodeURIComponent(email)}`);
+        } else {
+          setError(data.error || "Login failed");
+        }
       }
     } catch (err) {
       console.error("Login error:", err);

@@ -6,6 +6,7 @@ export async function middleware(request: NextRequest) {
   if (request.nextUrl.pathname === '/' ||
       request.nextUrl.pathname.startsWith('/login') ||
       request.nextUrl.pathname.startsWith('/registration') ||
+      request.nextUrl.pathname.startsWith('/verify-email') ||
       request.nextUrl.pathname.startsWith('/api/auth')) {
     return NextResponse.next();
   }
@@ -44,7 +45,11 @@ export async function middleware(request: NextRequest) {
       process.env.JWT_SECRET || 'fallback_secret_for_development'
     );
 
-    jwtVerify(token, secret);
+    const verifiedToken = await jwtVerify(token, secret);
+
+    // Optionally: You can check email verification status by storing it in the token
+    // For now, we just verify the token is valid and let the API routes handle further checks
+    // The email is available as (verifiedToken.payload as any).email if needed
 
     // Token is valid, allow the request to continue
     return NextResponse.next();
